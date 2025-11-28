@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PenPlotterESP32</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 200px 1fr 250px;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tools-panel, .status-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .tools-panel h3, .status-panel h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        .tool-button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tool-button:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .tool-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tool-options {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .tool-options.visible {
+            display: block;
+        }
+
+        .tool-options label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .tool-options input[type="number"],
+        .tool-options select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .canvas-container {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #drawingCanvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+            background: white;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-preview {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-preview:hover {
+            background: #2980b9;
+        }
+
+        .btn-plot {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-plot:hover {
+            background: #27ae60;
+        }
+
+        .btn-stop {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #c0392b;
+        }
+
+        .btn-reset {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #7f8c8d;
+        }
+
+        .file-upload {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .file-upload input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-panel .status-item {
+            margin-bottom: 12px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .status-item label {
+            font-weight: 600;
+            color: #666;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .status-item .value {
+            color: #333;
+        }
+
+        .connection-status {
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .connection-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .connection-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        progress {
+            width: 100%;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .message-box {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .message-box.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+
+        .message-box.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .message-box.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PenPlotterESP32</h1>
+        </header>
+
+        <div class="main-content">
+            <!-- Tools Panel -->
+            <div class="tools-panel">
+                <h3>Drawing Tools</h3>
+                <button class="tool-button" data-tool="draw">Freehand Draw</button>
+                <button class="tool-button active" data-tool="line">Line</button>
+                <button class="tool-button" data-tool="rectangle">Rectangle</button>
+                <button class="tool-button" data-tool="circle">Circle</button>
+                <button class="tool-button" data-tool="text">Text</button>
+
+                <div id="textOptions" class="tool-options">
+                    <label>Font Size (mm)</label>
+                    <input type="number" id="fontSize" value="10" min="5" max="50" step="1">
+
+                    <label>Font Style</label>
+                    <select id="fontStyle">
+                        <option value="Arial">Arial (Sans-serif)</option>
+                        <option value="serif">Serif (Times)</option>
+                        <option value="monospace">Monospace (Courier)</option>
+                        <option value="cursive">Cursive (Script)</option>
+                        <option value="fantasy">Fantasy (Display)</option>
+                    </select>
+                </div>
+
+                <h3 style="margin-top: 20px;">Edit</h3>
+                <button class="tool-button" onclick="undoLastShape()">Undo</button>
+                <button class="tool-button" onclick="clearCanvas()">Clear All</button>
+
+                <div class="file-upload">
+                    <h3>SVG Upload</h3>
+                    <input type="file" id="svgFileInput" accept=".svg" onchange="handleSVGUpload(event)">
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-container">
+                <canvas id="drawingCanvas" width="400" height="400"></canvas>
+
+                <div class="action-buttons">
+                    <button class="btn btn-preview" onclick="previewGcode()">Preview Path</button>
+                    <button class="btn btn-plot" onclick="sendToPlotter()">Plot Drawing</button>
+                    <button class="btn btn-stop" onclick="emergencyStop()">Emergency Stop</button>
+                    <button class="btn btn-reset" onclick="resetPlotter()">Reset Position</button>
+                </div>
+
+                <div id="messageBox" class="message-box"></div>
+            </div>
+
+            <!-- Status Panel -->
+            <div class="status-panel">
+                <h3>Status</h3>
+                <div id="connectionStatus" class="connection-status disconnected">Checking...</div>
+
+                <div class="status-item">
+                    <label>Position</label>
+                    <div class="value" id="position">X: 0.00 Y: 0.00 Z: 0.00</div>
+                </div>
+
+                <div class="status-item">
+                    <label>State</label>
+                    <div class="value" id="state">Idle</div>
+                </div>
+
+                <div class="status-item">
+                    <label>Shapes</label>
+                    <div class="value" id="shapeCount">0</div>
+                </div>
+
+                <div class="status-item">
+                    <label>Est. Time</label>
+                    <div class="value" id="estimatedTime">0 seconds</div>
+                </div>
+
+                <div class="status-item">
+                    <label>Progress</label>
+                    <progress id="progress" value="0" max="100"></progress>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CANVAS_WIDTH_MM = 200;
+        const CANVAS_HEIGHT_MM = 200;
+        const CANVAS_DISPLAY_SIZE = 400;
+        const MM_TO_PIXELS = CANVAS_DISPLAY_SIZE / CANVAS_WIDTH_MM;
+        const GRID_SIZE_MM = 10;
+        const GRID_SIZE_PX = GRID_SIZE_MM * MM_TO_PIXELS;
+
+        // State
+        let canvas, ctx;
+        let shapes = [];
+        let currentTool = 'line';
+        let isDrawing = false;
+        let startX, startY;
+        let previewShape = null;
+        let currentPath = []; // For freehand drawing
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+
+            // Set up event listeners
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+
+            // Touch support
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+
+            // Tool buttons
+            document.querySelectorAll('.tool-button[data-tool]').forEach(btn => {
+                btn.addEventListener('click', () => selectTool(btn.dataset.tool));
+            });
+
+            // Initial draw
+            drawCanvas();
+            checkConnection();
+
+            // Update status periodically
+            setInterval(updateStatus, 1000);
+        }
+
+        // Drawing functions
+        function drawCanvas() {
+            ctx.clearRect(0, 0, CANVAS_DISPLAY_SIZE, CANVAS_DISPLAY_SIZE);
+            drawGrid();
+            drawShapes();
+            if (previewShape) {
+                drawShape(previewShape, true);
+            }
+            updateShapeCount();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+
+            for (let x = 0; x <= CANVAS_WIDTH_MM; x += GRID_SIZE_MM) {
+                const px = x * MM_TO_PIXELS;
+                ctx.beginPath();
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, CANVAS_DISPLAY_SIZE);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y <= CANVAS_HEIGHT_MM; y += GRID_SIZE_MM) {
+                const py = y * MM_TO_PIXELS;
+                ctx.beginPath();
+                ctx.moveTo(0, py);
+                ctx.lineTo(CANVAS_DISPLAY_SIZE, py);
+                ctx.stroke();
+            }
+        }
+
+        function drawShapes() {
+            shapes.forEach(shape => drawShape(shape, false));
+        }
+
+        function drawShape(shape, isPreview) {
+            ctx.strokeStyle = isPreview ? '#3498db' : '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = 'none';
+
+            if (shape.type === 'line') {
+                ctx.beginPath();
+                ctx.moveTo(shape.x1 * MM_TO_PIXELS, shape.y1 * MM_TO_PIXELS);
+                ctx.lineTo(shape.x2 * MM_TO_PIXELS, shape.y2 * MM_TO_PIXELS);
+                ctx.stroke();
+            } else if (shape.type === 'rectangle') {
+                ctx.strokeRect(
+                    shape.x * MM_TO_PIXELS,
+                    shape.y * MM_TO_PIXELS,
+                    shape.width * MM_TO_PIXELS,
+                    shape.height * MM_TO_PIXELS
+                );
+            } else if (shape.type === 'circle') {
+                ctx.beginPath();
+                ctx.arc(
+                    shape.x * MM_TO_PIXELS,
+                    shape.y * MM_TO_PIXELS,
+                    shape.radius * MM_TO_PIXELS,
+                    0, 2 * Math.PI
+                );
+                ctx.stroke();
+            } else if (shape.type === 'text') {
+                const fontFamily = shape.fontStyle || 'Arial';
+                ctx.font = `${shape.fontSize * MM_TO_PIXELS}px ${fontFamily}`;
+                ctx.strokeText(shape.text, shape.x * MM_TO_PIXELS, shape.y * MM_TO_PIXELS);
+            } else if (shape.type === 'path') {
+                if (shape.points && shape.points.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(shape.points[0].x * MM_TO_PIXELS, shape.points[0].y * MM_TO_PIXELS);
+                    for (let i = 1; i < shape.points.length; i++) {
+                        ctx.lineTo(shape.points[i].x * MM_TO_PIXELS, shape.points[i].y * MM_TO_PIXELS);
+                    }
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Mouse event handlers
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            startX = (e.clientX - rect.left) / MM_TO_PIXELS;
+            startY = (e.clientY - rect.top) / MM_TO_PIXELS;
+
+            isDrawing = true;
+
+            if (currentTool === 'text') {
+                const text = prompt('Enter text:');
+                if (text) {
+                    const fontSize = parseFloat(document.getElementById('fontSize').value) || 10;
+                    const fontStyle = document.getElementById('fontStyle').value || 'Arial';
+                    shapes.push({
+                        type: 'text',
+                        x: startX,
+                        y: startY,
+                        text: text,
+                        fontSize: fontSize,
+                        fontStyle: fontStyle
+                    });
+                    drawCanvas();
+                }
+                isDrawing = false;
+            } else if (currentTool === 'draw') {
+                currentPath = [{x: startX, y: startY}];
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (!isDrawing || currentTool === 'text') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const currentX = (e.clientX - rect.left) / MM_TO_PIXELS;
+            const currentY = (e.clientY - rect.top) / MM_TO_PIXELS;
+
+            if (currentTool === 'draw') {
+                currentPath.push({x: currentX, y: currentY});
+                previewShape = {
+                    type: 'path',
+                    points: [...currentPath]
+                };
+            } else if (currentTool === 'line') {
+                previewShape = {
+                    type: 'line',
+                    x1: startX, y1: startY,
+                    x2: currentX, y2: currentY
+                };
+            } else if (currentTool === 'rectangle') {
+                previewShape = {
+                    type: 'rectangle',
+                    x: Math.min(startX, currentX),
+                    y: Math.min(startY, currentY),
+                    width: Math.abs(currentX - startX),
+                    height: Math.abs(currentY - startY)
+                };
+            } else if (currentTool === 'circle') {
+                const radius = Math.sqrt(Math.pow(currentX - startX, 2) + Math.pow(currentY - startY, 2));
+                previewShape = {
+                    type: 'circle',
+                    x: startX,
+                    y: startY,
+                    radius: radius
+                };
+            }
+
+            drawCanvas();
+        }
+
+        function handleMouseUp(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            if (currentTool === 'draw' && currentPath.length > 1) {
+                shapes.push({
+                    type: 'path',
+                    points: [...currentPath]
+                });
+                currentPath = [];
+                previewShape = null;
+                drawCanvas();
+            } else if (previewShape) {
+                shapes.push(previewShape);
+                previewShape = null;
+                drawCanvas();
+            }
+        }
+
+        // Touch event handlers
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        // Tool selection
+        function selectTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-button[data-tool]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+
+            // Show/hide text options
+            const textOptions = document.getElementById('textOptions');
+            if (tool === 'text') {
+                textOptions.classList.add('visible');
+            } else {
+                textOptions.classList.remove('visible');
+            }
+        }
+
+        // Canvas editing
+        function undoLastShape() {
+            if (shapes.length > 0) {
+                shapes.pop();
+                drawCanvas();
+                showMessage('Last shape removed', 'info');
+            }
+        }
+
+        function clearCanvas() {
+            if (confirm('Clear all shapes?')) {
+                shapes = [];
+                drawCanvas();
+                showMessage('Canvas cleared', 'info');
+            }
+        }
+
+        // SVG import
+        async function handleSVGUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'image/svg+xml');
+
+                const paths = doc.querySelectorAll('path, line, rect, circle');
+                let importedCount = 0;
+
+                paths.forEach(element => {
+                    if (element.tagName === 'line') {
+                        shapes.push({
+                            type: 'line',
+                            x1: parseFloat(element.getAttribute('x1')) / 10,
+                            y1: parseFloat(element.getAttribute('y1')) / 10,
+                            x2: parseFloat(element.getAttribute('x2')) / 10,
+                            y2: parseFloat(element.getAttribute('y2')) / 10
+                        });
+                        importedCount++;
+                    } else if (element.tagName === 'rect') {
+                        shapes.push({
+                            type: 'rectangle',
+                            x: parseFloat(element.getAttribute('x')) / 10,
+                            y: parseFloat(element.getAttribute('y')) / 10,
+                            width: parseFloat(element.getAttribute('width')) / 10,
+                            height: parseFloat(element.getAttribute('height')) / 10
+                        });
+                        importedCount++;
+                    } else if (element.tagName === 'circle') {
+                        shapes.push({
+                            type: 'circle',
+                            x: parseFloat(element.getAttribute('cx')) / 10,
+                            y: parseFloat(element.getAttribute('cy')) / 10,
+                            radius: parseFloat(element.getAttribute('r')) / 10
+                        });
+                        importedCount++;
+                    }
+                });
+
+                drawCanvas();
+                showMessage(`Imported ${importedCount} shapes from SVG`, 'success');
+            } catch (error) {
+                showMessage('Error parsing SVG file: ' + error.message, 'error');
+            }
+        }
+
+        // G-code generation
+        function shapesToGcode(shapes) {
+            let gcode = 'G21\n'; // Millimeter mode
+            gcode += 'G90\n'; // Absolute positioning
+            gcode += 'G0 Z1\n'; // Pen up
+
+            shapes.forEach(shape => {
+                if (shape.type === 'line') {
+                    gcode += `G0 X${shape.x1.toFixed(3)} Y${shape.y1.toFixed(3)}\n`;
+                    gcode += 'G0 Z0\n'; // Pen down
+                    gcode += `G1 X${shape.x2.toFixed(3)} Y${shape.y2.toFixed(3)} F1000\n`;
+                    gcode += 'G0 Z1\n'; // Pen up
+                } else if (shape.type === 'rectangle') {
+                    const x1 = shape.x;
+                    const y1 = shape.y;
+                    const x2 = shape.x + shape.width;
+                    const y2 = shape.y + shape.height;
+
+                    gcode += `G0 X${x1.toFixed(3)} Y${y1.toFixed(3)}\n`;
+                    gcode += 'G0 Z0\n';
+                    gcode += `G1 X${x2.toFixed(3)} Y${y1.toFixed(3)} F1000\n`;
+                    gcode += `G1 X${x2.toFixed(3)} Y${y2.toFixed(3)} F1000\n`;
+                    gcode += `G1 X${x1.toFixed(3)} Y${y2.toFixed(3)} F1000\n`;
+                    gcode += `G1 X${x1.toFixed(3)} Y${y1.toFixed(3)} F1000\n`;
+                    gcode += 'G0 Z1\n';
+                } else if (shape.type === 'circle') {
+                    const segments = 36;
+                    for (let i = 0; i <= segments; i++) {
+                        const angle = (i / segments) * 2 * Math.PI;
+                        const x = shape.x + shape.radius * Math.cos(angle);
+                        const y = shape.y + shape.radius * Math.sin(angle);
+
+                        if (i === 0) {
+                            gcode += `G0 X${x.toFixed(3)} Y${y.toFixed(3)}\n`;
+                            gcode += 'G0 Z0\n';
+                        } else {
+                            gcode += `G1 X${x.toFixed(3)} Y${y.toFixed(3)} F1000\n`;
+                        }
+                    }
+                    gcode += 'G0 Z1\n';
+                } else if (shape.type === 'path') {
+                    // Freehand drawing path
+                    if (shape.points && shape.points.length > 0) {
+                        gcode += `G0 X${shape.points[0].x.toFixed(3)} Y${shape.points[0].y.toFixed(3)}\n`;
+                        gcode += 'G0 Z0\n'; // Pen down
+                        for (let i = 1; i < shape.points.length; i++) {
+                            gcode += `G1 X${shape.points[i].x.toFixed(3)} Y${shape.points[i].y.toFixed(3)} F1000\n`;
+                        }
+                        gcode += 'G0 Z1\n'; // Pen up
+                    }
+                } else if (shape.type === 'text') {
+                    // Simple text rendering as underline (basic implementation)
+                    // For better text, you would need to convert text to vector paths
+                    gcode += `G0 X${shape.x.toFixed(3)} Y${shape.y.toFixed(3)}\n`;
+                    gcode += 'G0 Z0\n';
+                    const textWidth = shape.text.length * shape.fontSize * 0.6;
+                    gcode += `G1 X${(shape.x + textWidth).toFixed(3)} Y${shape.y.toFixed(3)} F1000\n`;
+                    gcode += 'G0 Z1\n';
+                }
+            });
+
+            gcode += 'G0 X0 Y0\n'; // Return home
+            gcode += 'M2\n'; // Program end
+
+            return gcode;
+        }
+
+        // Preview G-code path
+        function previewGcode() {
+            if (shapes.length === 0) {
+                showMessage('No shapes to preview', 'info');
+                return;
+            }
+
+            const gcode = shapesToGcode(shapes);
+            const lines = gcode.split('\n').length;
+            const estimatedTime = estimatePlotTime();
+
+            showMessage(`Preview: ${lines} lines of G-code, est. ${estimatedTime} seconds`, 'info');
+        }
+
+        // Send to plotter
+        async function sendToPlotter() {
+            if (shapes.length === 0) {
+                showMessage('No shapes to plot', 'error');
+                return;
+            }
+
+            const gcode = shapesToGcode(shapes);
+
+            try {
+                showMessage('Sending to plotter...', 'info');
+
+                const response = await fetch('/api/gcode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: gcode
+                });
+
+                if (response.ok) {
+                    showMessage('Plotting started!', 'success');
+                    document.getElementById('state').textContent = 'Plotting';
+                } else {
+                    showMessage('Error: ' + response.statusText, 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error: ' + error.message, 'error');
+            }
+        }
+
+        // Emergency stop
+        async function emergencyStop() {
+            try {
+                await fetch('/api/stop', { method: 'POST' });
+                showMessage('Emergency stop activated', 'info');
+                document.getElementById('state').textContent = 'Stopped';
+            } catch (error) {
+                showMessage('Error sending stop command', 'error');
+            }
+        }
+
+        // Reset plotter position
+        async function resetPlotter() {
+            try {
+                const gcode = 'G90\nG0 Z1\nG0 X0 Y0\n';
+                await fetch('/api/gcode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: gcode
+                });
+                showMessage('Returning to home position', 'info');
+            } catch (error) {
+                showMessage('Error resetting plotter', 'error');
+            }
+        }
+
+        // Status updates
+        async function checkConnection() {
+            try {
+                const response = await fetch('/api/status');
+                if (response.ok) {
+                    document.getElementById('connectionStatus').textContent = 'Connected';
+                    document.getElementById('connectionStatus').className = 'connection-status connected';
+                } else {
+                    document.getElementById('connectionStatus').textContent = 'Disconnected';
+                    document.getElementById('connectionStatus').className = 'connection-status disconnected';
+                }
+            } catch (error) {
+                document.getElementById('connectionStatus').textContent = 'Offline Mode';
+                document.getElementById('connectionStatus').className = 'connection-status disconnected';
+            }
+        }
+
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                if (response.ok) {
+                    const status = await response.json();
+
+                    if (status.x !== undefined) {
+                        document.getElementById('position').textContent =
+                            `X: ${status.x.toFixed(2)} Y: ${status.y.toFixed(2)} Z: ${status.z.toFixed(2)}`;
+                    }
+
+                    if (status.state) {
+                        document.getElementById('state').textContent = status.state;
+                    }
+                }
+            } catch (error) {
+                // Silently fail in offline mode
+            }
+        }
+
+        function updateShapeCount() {
+            document.getElementById('shapeCount').textContent = shapes.length;
+            const time = estimatePlotTime();
+            document.getElementById('estimatedTime').textContent = `${time} seconds`;
+        }
+
+        function estimatePlotTime() {
+            let totalDistance = 0;
+            const feedRate = 1000; // mm/min
+
+            shapes.forEach(shape => {
+                if (shape.type === 'line') {
+                    totalDistance += Math.sqrt(
+                        Math.pow(shape.x2 - shape.x1, 2) +
+                        Math.pow(shape.y2 - shape.y1, 2)
+                    );
+                } else if (shape.type === 'rectangle') {
+                    totalDistance += 2 * (shape.width + shape.height);
+                } else if (shape.type === 'circle') {
+                    totalDistance += 2 * Math.PI * shape.radius;
+                } else if (shape.type === 'path') {
+                    for (let i = 1; i < shape.points.length; i++) {
+                        totalDistance += Math.sqrt(
+                            Math.pow(shape.points[i].x - shape.points[i-1].x, 2) +
+                            Math.pow(shape.points[i].y - shape.points[i-1].y, 2)
+                        );
+                    }
+                } else if (shape.type === 'text') {
+                    totalDistance += shape.text.length * shape.fontSize * 0.6;
+                }
+            });
+
+            return Math.round((totalDistance / feedRate) * 60);
+        }
+
+        function showMessage(message, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+
+            if (type !== 'error') {
+                setTimeout(() => {
+                    messageBox.className = 'message-box';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
