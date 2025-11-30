@@ -2,6 +2,8 @@
 
 A WiFi-enabled pen plotter with an MS Paint-style web interface. Draw on your phone or tablet and watch it plot!
 
+Full writeup and 3d print files here https://hackaday.io/project/204593-pen-plotter-esp32
+
 ## Features
 
 - **WiFi Control** - No USB connection needed, control via web browser
@@ -183,7 +185,10 @@ Supported G-code commands:
 
 ## Attribution
 
-This project has 3d parts and inspiration from: 
+This project has 3d parts and inspiration from:
+
 https://www.thingiverse.com/thing:4637226/files
+
 https://www.thingiverse.com/thing:4607077#google_vignette
+
 https://www.pcbway.com/project/shareproject/Build_a_simple_3D_Arduino_Mini_CNC_Plotter_e2c3f905.html
