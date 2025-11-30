@@ -180,16 +180,10 @@ Supported G-code commands:
 - `M114` - Report current position
 - `M18/M84` - Disable motors
 
-## Contributing
 
-This is a personal project, but feel free to fork and modify for your own use!
+## Attribution
 
-## License
-
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
-
-This means you're free to use, modify, and distribute this software, but if you run a modified version on a server (like the web interface), you must make your source code available to users.
-
-## Credits
-
-Created as a custom WiFi pen plotter solution avoiding the complexity of GRBL/FluidNC firmware.
+This project has 3d parts and inspiration from: 
+https://www.thingiverse.com/thing:4637226/files
+https://www.thingiverse.com/thing:4607077#google_vignette
+https://www.pcbway.com/project/shareproject/Build_a_simple_3D_Arduino_Mini_CNC_Plotter_e2c3f905.html
