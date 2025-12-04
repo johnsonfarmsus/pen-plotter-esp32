@@ -2,7 +2,7 @@
 
 A WiFi-enabled pen plotter with an MS Paint-style web interface. Draw on your phone or tablet and watch it plot!
 
-Full writeup and 3d print files here https://hackaday.io/project/204593-pen-plotter-esp32
+Full writeup and 3d print files here https://hackaday.io/project/204593-pen-plotter-esp32 and https://www.printables.com/model/1503490-pen-plotter-esp32.
 
 ## Features
 
