@@ -24,7 +24,7 @@
 
 // Motor specifications
 #define STEPS_PER_REV 4096      // 28BYJ-48 in half-step mode
-#define STEPS_PER_MM_X 52       // Steps per mm for X axis (20% more reach than Y)
+#define STEPS_PER_MM_X 40       // Steps per mm for X axis (20% more reach than Y)
 #define STEPS_PER_MM_Y 40       // Steps per mm for Y axis
 #define STEPS_PER_MM_Z 50       // Steps per mm for Z axis (pen) - reduced to 1/4
 

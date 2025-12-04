@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# PlatformIO
+plotter_sketch/.pio/
+plotter_sketch/.vscode/
+plotter_sketch/.pioenvs/
+plotter_sketch/.piolibdeps/
+plotter_sketch/lib/
+plotter_sketch/platformio.ini.bak
+
+# Build artifacts
+*.o
+*.elf
+*.bin
+*.hex
+
+# Editor files
+*.swp
+*.swo
+*~

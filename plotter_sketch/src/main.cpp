@@ -14,6 +14,8 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WebServer.h>
+#include <ESPmDNS.h>
+#include <DNSServer.h>
 
 // Include our custom modules
 #include "motor_control.h"
@@ -26,6 +28,10 @@ const char* AP_PASSWORD = "plot2025";
 
 // Web server on port 80
 WebServer server(80);
+
+// DNS server for captive portal
+DNSServer dnsServer;
+const byte DNS_PORT = 53;
 
 // Plotter state
 String plotterState = "idle";  // idle, plotting, homing
@@ -92,10 +98,12 @@ void handleStatus() {
 }
 
 /**
- * Handle 404 errors
+ * Handle 404 errors - redirect to root for captive portal
  */
 void handleNotFound() {
-  server.send(404, "text/plain", "404: Not Found");
+  // Redirect all unknown requests to root (captive portal behavior)
+  server.sendHeader("Location", "/", true);
+  server.send(302, "text/plain", "");
 }
 
 /**
@@ -133,8 +141,24 @@ void setup() {
   Serial.println(IP);
   Serial.println();
 
+  // Set up DNS server for captive portal
+  Serial.println("[3/5] Starting DNS server for captive portal...");
+  dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+  Serial.println("      ✓ DNS server started (captive portal active)");
+  Serial.println();
+
+  // Set up mDNS responder
+  Serial.println("[4/5] Starting mDNS responder...");
+  if (MDNS.begin("plotter")) {
+    Serial.println("      ✓ mDNS responder started");
+    Serial.println("      Hostname: plotter.local");
+  } else {
+    Serial.println("      ⚠ Error setting up mDNS responder");
+  }
+  Serial.println();
+
   // Set up web server routes
-  Serial.println("[3/3] Starting web server...");
+  Serial.println("[5/5] Starting web server...");
   server.on("/", handleRoot);
   server.on("/gcode", handleGCode);
   server.on("/status", handleStatus);
@@ -150,7 +174,9 @@ void setup() {
   Serial.println();
   Serial.println("To use:");
   Serial.println("1. Connect to WiFi network: " + String(AP_SSID));
-  Serial.println("2. Open browser to: http://" + IP.toString());
+  Serial.println("2. Open browser to:");
+  Serial.println("   http://plotter.local  (recommended)");
+  Serial.println("   http://" + IP.toString());
   Serial.println("3. Start drawing and plotting!");
   Serial.println();
   Serial.println("========================================");
@@ -161,6 +187,9 @@ void setup() {
  * Main loop - runs continuously
  */
 void loop() {
+  // Handle DNS requests for captive portal
+  dnsServer.processNextRequest();
+
   // Handle web server requests
   server.handleClient();
 
