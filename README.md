@@ -2,6 +2,8 @@
 
 A WiFi-enabled pen plotter with an MS Paint-style web interface. Draw on your phone or tablet and watch it plot!
 
+Full writeup and 3d print files here https://hackaday.io/project/204593-pen-plotter-esp32
+
 ## Features
 
 - **WiFi Control** - No USB connection needed, control via web browser
@@ -26,7 +28,7 @@ pio run --target upload
 
 ### 3. Open Web Interface
 
-Open your browser to: `http://plotter.local` (or `http://192.168.4.1`)
+Open your browser to: `http://192.168.4.1`
 
 ### 4. Draw and Plot!
 
@@ -180,16 +182,13 @@ Supported G-code commands:
 - `M114` - Report current position
 - `M18/M84` - Disable motors
 
-## Contributing
 
-This is a personal project, but feel free to fork and modify for your own use!
+## Attribution
 
-## License
+This project has 3d parts and inspiration from:
 
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
+https://www.thingiverse.com/thing:4637226/files
 
-This means you're free to use, modify, and distribute this software, but if you run a modified version on a server (like the web interface), you must make your source code available to users.
+https://www.thingiverse.com/thing:4607077#google_vignette
 
-## Credits
-
-Created as a custom WiFi pen plotter solution avoiding the complexity of GRBL/FluidNC firmware.
+https://www.pcbway.com/project/shareproject/Build_a_simple_3D_Arduino_Mini_CNC_Plotter_e2c3f905.html
