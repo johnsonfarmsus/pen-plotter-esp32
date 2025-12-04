@@ -28,7 +28,7 @@ pio run --target upload
 
 ### 3. Open Web Interface
 
-Open your browser to: `http://192.168.4.1`
+Open your browser to: `http://192.168.4.1` or `http://plotter.local`
 
 ### 4. Draw and Plot!
 
