@@ -187,8 +187,10 @@ Supported G-code commands:
 
 This project has 3d parts and inspiration from:
 
-https://www.thingiverse.com/thing:4637226/files
+https://www.thingiverse.com/thing:4637226
 
-https://www.thingiverse.com/thing:4607077#google_vignette
+https://www.thingiverse.com/thing:4607077
+
+https://www.thingiverse.com/thing:6797388
 
 https://www.pcbway.com/project/shareproject/Build_a_simple_3D_Arduino_Mini_CNC_Plotter_e2c3f905.html
