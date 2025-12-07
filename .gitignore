@@ -21,3 +21,6 @@ plotter_sketch/platformio.ini.bak
 *.swp
 *.swo
 *~
+
+# Test/development projects (not needed by end users)
+motor_test_project/
