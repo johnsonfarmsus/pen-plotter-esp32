@@ -8,18 +8,78 @@ Full writeup and 3d print files here https://hackaday.io/project/204593-pen-plot
 
 - **WiFi Control** - No USB connection needed, control via web browser
 - **Touch-Friendly Interface** - Draw with your finger on phone/tablet
-- **Multiple Drawing Tools** - Freehand, lines, rectangles, and circles
+- **Drawing Tools** - Freehand draw and text plotting with Block font
+- **Text Plotting** - Multi-line text support with adjustable sizes
+- **File Upload** - Upload SVG or G-code files for plotting
 - **Real-time Preview** - See your drawing before plotting
 - **Custom Motor Control** - Direct stepper motor control without external firmware
 
 ## Quick Start
 
-### 1. Upload the Firmware
+### Get the Firmware
+
+**Option 1: Download Release (Recommended)**
+
+1. Go to the [Releases page](https://github.com/johnsonfarmsus/pen-plotter-esp32/releases)
+2. Download the latest release (`.zip` file)
+3. Extract the zip file to a folder on your computer (e.g., `Downloads/pen-plotter-esp32`)
+
+**Option 2: Clone from GitHub**
 
 ```bash
-cd plotter_sketch
+git clone https://github.com/johnsonfarmsus/pen-plotter-esp32.git
+cd pen-plotter-esp32
+```
+
+### Prerequisites
+
+Install PlatformIO Core:
+
+**Windows:**
+```bash
+# Install using pip (requires Python 3.6+)
+pip install platformio
+
+# Verify installation
+pio --version
+```
+
+**macOS/Linux:**
+```bash
+# Install using pip
+pip3 install platformio
+
+# Verify installation
+pio --version
+```
+
+For detailed installation instructions, see the [PlatformIO installation guide](https://docs.platformio.org/en/latest/core/installation/index.html).
+
+### 1. Upload the Firmware
+
+**Connect your ESP32** to your computer via USB, then navigate to the firmware folder and upload:
+
+**Windows:**
+```bash
+cd pen-plotter-esp32/plotter_sketch
 pio run --target upload
 ```
+
+**macOS/Linux:**
+```bash
+cd pen-plotter-esp32/plotter_sketch
+pio run --target upload
+```
+
+**What happens during upload:**
+- PlatformIO detects your ESP32 and compiles the firmware
+- Upload takes 30-60 seconds
+- You'll see a "SUCCESS" message when complete
+
+**If upload fails:**
+- Press and hold the "BOOT" button on your ESP32, then try uploading again
+- Some boards require holding BOOT + pressing RESET to enter programming mode
+- Verify your USB cable supports data transfer (not just power)
 
 ### 2. Connect to PlotterBot WiFi
 
@@ -32,8 +92,8 @@ Open your browser to: `http://192.168.4.1` or `http://plotter.local`
 
 ### 4. Draw and Plot!
 
-- Select a drawing tool (Draw, Line, Rectangle, Circle)
-- Create your design on the canvas
+- Select a drawing tool (Draw or Text)
+- Create your design on the canvas or upload an SVG/G-code file
 - Click "Send to Plotter" to start plotting
 - Watch your creation come to life!
 
@@ -62,7 +122,7 @@ See [HARDWARE_SETUP.md](HARDWARE_SETUP.md) for detailed wiring diagrams.
 The plotter includes calibration settings in `plotter_sketch/src/motor_control.h`:
 
 ```cpp
-#define STEPS_PER_MM_X 52    // Adjust for your X-axis mechanical setup
+#define STEPS_PER_MM_X 40    // Adjust for your X-axis mechanical setup
 #define STEPS_PER_MM_Y 40    // Adjust for your Y-axis mechanical setup
 #define STEPS_PER_MM_Z 50    // Adjust for pen lift height
 ```
@@ -82,14 +142,14 @@ If your plotter is mirrored, change the inversion settings:
 
 ## Architecture
 
-Built with custom firmware (no GRBL/FluidNC dependency). See [PROJECT_PLAN.md](PROJECT_PLAN.md) for architecture details.
+Built with custom firmware (no GRBL/FluidNC dependency).
 
 ### Key Components
 
 - **motor_control.h** - Direct stepper motor control using half-step sequences
 - **gcode_parser.h** - Simple G-code interpreter (G0, G1, G28, M3, M5)
-- **web_interface.h** - Embedded HTML/CSS/JS interface
-- **main.cpp** - WiFi AP and web server setup
+- **web_interface.h** - Embedded HTML/CSS/JS interface with text plotting and SVG support
+- **main.cpp** - WiFi AP, web server, and captive portal setup
 
 ## Development
 
@@ -123,8 +183,7 @@ pen_plotter_esp32/
 │   └── platformio.ini       # PlatformIO configuration
 ├── HARDWARE_SETUP.md       # Hardware assembly guide
 ├── README.md               # This file
-├── LICENSE                 # GNU AGPL v3.0
-└── PROJECT_PLAN.md         # Architecture decisions
+└── LICENSE                 # GNU AGPL v3.0
 ```
 
 ## Web Interface
@@ -132,17 +191,12 @@ pen_plotter_esp32/
 The web interface is fully embedded in the ESP32 firmware (no SPIFFS required).
 
 **Drawing Tools:**
-- ✏️ Freehand Draw - Touch/click and drag
-- 📏 Line - Click start and end points
-- ⬜ Rectangle - Click and drag corners
-- ⭕ Circle - Click center and drag radius
+- ✏️ Freehand Draw - Touch/click and drag to draw
+- 📝 Text - Add multi-line text with Block font (adjustable sizes: Small, Medium, Large, Extra Large)
+- 📁 Upload - Upload SVG or G-code files
 
 **Controls:**
-- 🚀 Send to Plotter - Execute your drawing
-- 🏠 Home - Return to origin (0,0) with pen up
-- ⬆️ Pen Up - Lift pen manually
-- ⬇️ Pen Down - Lower pen manually
-- 📊 Status - View current position
+- 🚀 Send to Plotter - Execute your drawing (with confirmation dialog)
 - 🗑️ Clear - Erase canvas
 
 ## Troubleshooting
