@@ -11,7 +11,6 @@ Full writeup and 3d print files here https://hackaday.io/project/204593-pen-plot
 - **Drawing Tools** - Freehand draw and text plotting with Block font
 - **Text Plotting** - Multi-line text support with adjustable sizes
 - **File Upload** - Upload SVG or G-code files for plotting
-- **Real-time Preview** - See your drawing before plotting
 - **Custom Motor Control** - Direct stepper motor control without external firmware
 
 ## Quick Start
